@@ -55,8 +55,8 @@ export function TopNav() {
     router.push("/dashboard");
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     router.push("/");
   };
 

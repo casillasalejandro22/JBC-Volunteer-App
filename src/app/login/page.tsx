@@ -1,22 +1,47 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/context/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Bug, HandHeart, ShieldCheck } from "lucide-react";
-
-// TODO: Replace with Firebase Auth login form
-// This is a placeholder role-selection page for demo purposes.
-// In production, use Firebase Auth sign-in and fetch the user role from Firestore.
+import { UserRole } from "@/lib/types";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, isLoading } = useAuth();
+  const { login, register, isLoading } = useAuth();
 
-  const handleLogin = async (role: "volunteer" | "staff") => {
-    await login(role);
-    router.push("/dashboard");
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [role, setRole] = useState<UserRole>("volunteer");
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    try {
+      if (isSignUp) {
+        await register(email, password, name, role);
+      } else {
+        await login(email, password);
+      }
+      router.push("/dashboard");
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Something went wrong"
+      );
+    }
   };
 
   return (
@@ -28,64 +53,120 @@ export default function LoginPage() {
           </div>
           <h1 className="text-2xl font-bold">Welcome to JBC Volunteer Hub</h1>
           <p className="text-muted-foreground mt-1">
-            Choose your role to continue
+            {isSignUp ? "Create your account" : "Sign in to continue"}
           </p>
         </div>
 
-        <div className="grid gap-4">
-          <Card
-            className="cursor-pointer transition-shadow hover:shadow-lg border-2 hover:border-primary/50"
-            onClick={() => !isLoading && handleLogin("volunteer")}
-          >
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100">
-                  <HandHeart className="h-5 w-5 text-emerald-700" />
+        <Card>
+          <CardHeader>
+            <CardTitle>{isSignUp ? "Sign Up" : "Sign In"}</CardTitle>
+            <CardDescription>
+              {isSignUp
+                ? "Enter your details to create an account"
+                : "Enter your email and password"}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {isSignUp && (
+                <div className="space-y-2">
+                  <Label htmlFor="name">Full Name</Label>
+                  <Input
+                    id="name"
+                    type="text"
+                    placeholder="Jane Doe"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                  />
                 </div>
-                <div>
-                  <CardTitle className="text-lg">Volunteer</CardTitle>
-                  <CardDescription>
-                    Browse shifts, sign up, and track your hours
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <Button className="w-full" disabled={isLoading}>
-                {isLoading ? "Signing in..." : "Continue as Volunteer"}
-              </Button>
-            </CardContent>
-          </Card>
+              )}
 
-          <Card
-            className="cursor-pointer transition-shadow hover:shadow-lg border-2 hover:border-primary/50"
-            onClick={() => !isLoading && handleLogin("staff")}
-          >
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100">
-                  <ShieldCheck className="h-5 w-5 text-blue-700" />
-                </div>
-                <div>
-                  <CardTitle className="text-lg">Staff</CardTitle>
-                  <CardDescription>
-                    Manage shifts, approve signups, track attendance
-                  </CardDescription>
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
               </div>
-            </CardHeader>
-            <CardContent>
-              <Button variant="outline" className="w-full" disabled={isLoading}>
-                {isLoading ? "Signing in..." : "Continue as Staff"}
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
 
-        <p className="text-center text-xs text-muted-foreground">
-          This is a demo login. In production, this will use Firebase
-          Authentication.
-        </p>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={6}
+                />
+              </div>
+
+              {isSignUp && (
+                <div className="space-y-2">
+                  <Label>Role</Label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setRole("volunteer")}
+                      className={`flex items-center gap-2 rounded-lg border-2 p-3 text-sm font-medium transition-colors ${
+                        role === "volunteer"
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-primary/50"
+                      }`}
+                    >
+                      <HandHeart className="h-4 w-4 text-emerald-600" />
+                      Volunteer
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setRole("staff")}
+                      className={`flex items-center gap-2 rounded-lg border-2 p-3 text-sm font-medium transition-colors ${
+                        role === "staff"
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-primary/50"
+                      }`}
+                    >
+                      <ShieldCheck className="h-4 w-4 text-blue-600" />
+                      Staff
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {error && (
+                <p className="text-sm text-destructive">{error}</p>
+              )}
+
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading
+                  ? "Please wait..."
+                  : isSignUp
+                    ? "Create Account"
+                    : "Sign In"}
+              </Button>
+            </form>
+
+            <div className="mt-4 text-center text-sm text-muted-foreground">
+              {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsSignUp(!isSignUp);
+                  setError("");
+                }}
+                className="text-primary hover:underline font-medium"
+              >
+                {isSignUp ? "Sign In" : "Sign Up"}
+              </button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
