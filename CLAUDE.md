@@ -18,7 +18,7 @@
 - **Volunteer** — sign up for shifts, view schedule, track hours
 - **Staff** — post shifts, approve volunteers, track attendance
 
-**Current state of codebase:** Frontend shell exists with mock data. Pages exist for: Home, Login, Staff Dashboard/Shifts/Approvals/Attendance, Volunteer Dashboard/Available Shifts/My Schedule/Hours History. Manage Shifts button is broken. No backend connected yet.
+**Current state of codebase:** Firebase Auth is connected (login, logout, session persistence, role-based routing, auth guard). All pages exist and render. "Manage Shifts" nav is fixed. All data services (shifts, signups, attendance, calendar) exist as stubs backed by mock data — Firestore not yet wired. Phone number field missing from sign-up. Tasks 3–20 not yet started.
 
 ---
 
@@ -26,7 +26,7 @@
 
 ---
 
-### TASK 1 — Fix Broken "Manage Shifts" Navigation
+### TASK 1 — Fix Broken "Manage Shifts" Navigation ✅ DONE
 
 **What:** The "Manage Shifts" button/link in the Staff view currently does nothing. Wire it up to the correct page.
 
@@ -41,7 +41,7 @@
 
 ---
 
-### TASK 2 — Connect Firebase Authentication
+### TASK 2 — Connect Firebase Authentication ⚠️ PARTIAL
 
 **What:** Replace the mock login with real Firebase Auth. Support email/password login for both volunteers and staff. Role (volunteer vs staff) should be stored in Firestore under `users/{uid}`.
 
@@ -64,11 +64,11 @@ users/{uid}
 ```
 
 **Acceptance criteria:**
-- Real login and logout works
-- Wrong credentials show an error message
-- Volunteers land on volunteer dashboard, staff on staff dashboard
-- Refreshing the page keeps the user logged in
-- Phone number is collected and saved at sign-up
+- ✅ Real login and logout works
+- ✅ Wrong credentials show an error message
+- ✅ Volunteers land on volunteer dashboard, staff on staff dashboard
+- ✅ Refreshing the page keeps the user logged in
+- ❌ Phone number is collected and saved at sign-up (field missing from sign-up form and `registerUser`)
 
 ---
 
